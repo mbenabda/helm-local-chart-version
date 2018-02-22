@@ -1,0 +1,10 @@
+name: "local-chart-version"
+version: "0.0.1"
+usage: "local-chart-version [subcommand] LOCAL_CHART_DIRECTORY [flags]"
+description: |-
+  Helm plugin for bumping/manually setting the version number of a local helm chart
+  Usage: "local-chart-version [subcommand] LOCAL_CHART_DIRECTORY [flags]"
+command: "$HELM_PLUGIN_DIR/local-chart-version"
+hooks:
+  install: "$HELM_PLUGIN_DIR/install-binary.sh"
+ignoreFlags: false

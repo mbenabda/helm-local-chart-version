@@ -1,0 +1,47 @@
+hash: 2537e920a3d03a922fd6f75baa1b7e11b2a66fd84718e4efff51cb2f2ed16b95
+updated: 2018-02-22T23:56:36.259825774+01:00
+imports:
+- name: github.com/BurntSushi/toml
+  version: b26d9c308763d68093482582cea63d69be07a0f0
+- name: github.com/ghodss/yaml
+  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
+- name: github.com/gobwas/glob
+  version: 5ccd90ef52e1e632236f7326478d4faa74f99438
+  subpackages:
+  - compiler
+  - match
+  - syntax
+  - syntax/ast
+  - syntax/lexer
+  - util/runes
+  - util/strings
+- name: github.com/golang/protobuf
+  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+  subpackages:
+  - proto
+  - ptypes/any
+  - ptypes/timestamp
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/Masterminds/semver
+  version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
+- name: github.com/spf13/cobra
+  version: 7b2c5ac9fc04fc5efafb60700713d4fa609b777b
+- name: github.com/spf13/pflag
+  version: ee5fd03fd6acfd43e44aea0b4135958546ed8e73
+- name: gopkg.in/yaml.v2
+  version: d670f9405373e636a5a2765eea47fac0c9bc91a4
+- name: k8s.io/apimachinery
+  version: cced8e64b6ca92a8b6afcbfea3353ca016694a45
+  subpackages:
+  - pkg/version
+- name: k8s.io/helm
+  version: 6af75a8fd72e2aa18a2b278cfe5c7a1c5feca7f2
+  subpackages:
+  - pkg/chartutil
+  - pkg/ignore
+  - pkg/proto/hapi/chart
+  - pkg/proto/hapi/version
+  - pkg/sympath
+  - pkg/version
+testImports: []
