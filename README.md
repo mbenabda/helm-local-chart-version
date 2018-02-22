@@ -1,4 +1,4 @@
-# Helm Chart Version Plugin
+# Helm Local Chart Version Plugin
 
 This is a Helm plugin that helps you change your chart version.
 It is meant to be used in integration pipelines.
@@ -9,9 +9,25 @@ It is meant to be used in integration pipelines.
 helm local-chart-version [subcommand] [PATH_TO_LOCAL_CHART] [flags]
 ```
 
-know more: 
 ```
-helm local-chart-version help
+$ helm local-chart-version help
+Helm local-chart-version Plugin -- 0.0.1
+
+Modify the version number of a local helm chart
+
+Usage:
+  local-chart-version [command]
+
+Available Commands:
+  bump        Increment the desired segment of a local chart's version
+  help        Help about any command
+  set         Modify a local chart's version number in place
+  version     Print the version of the local-chart-version helm plugin
+
+Flags:
+  -h, --help   help for local-chart-version
+
+Use "local-chart-version [command] --help" for more information about a command.
 ```
 
 ## Install
@@ -19,7 +35,7 @@ helm local-chart-version help
 ### Using Helm plugin manager (> 2.3.x)
 
 ```shell
-helm plugin install https://github.com/mbenabda/helm-local-chart-version
+helm plugin install https://github.com/mbenabda/helm-local-chart-version --version v0.0.1
 ```
 
 ### Pre Helm 2.3.0 Installation
@@ -51,4 +67,3 @@ The above will install this plugin into your `$HELM_HOME/plugins` directory.
 - You need to have [Go](http://golang.org) installed. Make sure to set `$GOPATH`
 - If you don't have [Glide](http://glide.sh) installed, this will install it into
   `$GOPATH/bin` for you.
-- install [github.com/c4milo/github-release](https://github.com/c4milo/github-release)
