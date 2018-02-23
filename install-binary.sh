@@ -105,11 +105,8 @@ downloadFile() {
 
 # Unpack and install the helm plugin
 installFile() {
-  HELM_TMP="/tmp/$PROJECT_NAME"
-  mkdir -p "$HELM_TMP"
-  tar xf "$PLUGIN_TMP_FILE" -C "$HELM_TMP"
   echo "Preparing to install into ${HELM_PLUGIN_PATH}"
-  cp -r "$HELM_TMP" "$HELM_PLUGIN_PATH"
+  tar xf "$PLUGIN_TMP_FILE" -C "$HELM_PLUGIN_PATH"
 }
 
 # Executed if an error occurs.
