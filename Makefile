@@ -4,8 +4,8 @@ PROJECT_GH=mbenabda/$(PROJECT_NAME)
 PKG:= github.com/$(PROJECT_GH)
 
 HELM_HOME ?= $(shell helm home)
-VERSION := $(shell sed -n -e 's/version:[ "]*\([^"]*\).*/\1/p' plugin.yaml)
-TARGETS ?= darwin/amd64 linux/amd64 linux/386 windows/amd64
+VERSION ?= $(shell sed -n -e 's/version:[ "]*\([^"]*\).*/\1/p' plugin.yaml)
+TARGETS ?= $(shell cat .build_targets)
 
 LDFLAGS := -X main.Version=$(VERSION)
 # Clear the "unreleased" string in BuildMetadata
@@ -17,12 +17,11 @@ clean:
 	@rm -rf $(PROJECT_BIN_NAME) ./build ./dist
 
 .PHONY: build-cross
-build-cross: LDFLAGS += -extldflags "-static"
+build-cross: LDFLAGS += -s -w -extldflags "-static"
 build-cross:
 	CGO_ENABLED=0 gox \
 		-verbose \
-		-parallel=3 \
-		-output="dist/{{.OS}}-{{.Arch}}/{{.Dir}}" \
+		-output="dist/$(PROJECT_NAME)-{{.OS}}-{{.Arch}}/$(PROJECT_BIN_NAME)" \
 		-ldflags "$(LDFLAGS)" \
 		-osarch="$(TARGETS)" \
 		$(PKG)
@@ -32,9 +31,9 @@ dist: export COPYFILE_DISABLE=1 #teach OSX tar to not put ._* files in tar archi
 dist: 
 	( \
 		cd dist && \
-		find * -type d -exec cp ../README.md {} \; && \
-		find * -type d -exec cp ../plugin.yaml {} \; && \
-		find * -type d -exec tar -zcf ${PROJECT_BIN_NAME}-${VERSION}-{}.tgz {} \; \
+		find * -maxdepth 1 -type d -exec cp ../README.md {} \; && \
+		find * -maxdepth 1 -type d -exec cp ../plugin.yaml {} \; && \
+		ls -d * | xargs -I {} -n1 bash -c "cd {} && tar -zcf ../{}.tgz * && cd .." \
 	)
 
 HAS_GLIDE := $(shell command -v glide;)
@@ -68,9 +67,8 @@ install: bootstrap build
 	cp ${PROJECT_BIN_NAME} $(HELM_HOME)/plugins/${PROJECT_NAME}/
 	cp plugin.yaml $(HELM_HOME)/plugins/${PROJECT_NAME}/
 
-# usage: make clean bootstrap build-cross dist release
 .PHONY: release
-release: dist
+release: clean bootstrap build-cross dist
 ifndef GITHUB_TOKEN
 	$(error GITHUB_TOKEN is undefined)
 endif
