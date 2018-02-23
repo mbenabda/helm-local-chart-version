@@ -43,7 +43,7 @@ if [[ $SKIP_BIN_INSTALL == "1" ]]; then
   exit
 fi
 
-# initArch discovers the architecture for this system.
+# Discover the architecture for this system.
 initArch() {
   ARCH=$(uname -m)
   case $ARCH in
@@ -54,7 +54,7 @@ initArch() {
   esac
 }
 
-# initOS discovers the operating system for this system.
+# Discover the operating system for this system.
 initOS() {
   OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
 
@@ -66,38 +66,33 @@ initOS() {
   esac
 }
 
-# verifySupported checks that the os/arch combination is supported for
-# binary builds.
-verifySupported() {
-  local supported="darwin-amd64\nlinux-amd64\nlinux-386\nwindows-amd64"
-  if ! echo "${supported}" | grep -q "${OS}-${ARCH}"; then
-    echo "No prebuilt binary for ${OS}-${ARCH}."
-    exit 1
-  fi
-
+# Figure out the download url for the latest available version.
+getDownloadURL() {
   if ! type "curl" > /dev/null && ! type "wget" > /dev/null; then
     echo "Either curl or wget is required"
     exit 1
   fi
-}
 
-# getDownloadURL checks the latest available version.
-getDownloadURL() {
-  local url="https://api.github.com/repos/$PROJECT_GH/releases/latest"
+  local url="https://api.github.com/repos/${PROJECT_GH}/releases/latest"
   local version=$(git describe --tags --exact-match 2>/dev/null)
   if [ -n "$version" ]; then
-    url="https://api.github.com/repos/$PROJECT_GH/releases/tags/$version"
+    url="https://api.github.com/repos/${PROJECT_GH}/releases/tags/${version}"
   fi
+  
   # Use the GitHub API to find the download url for this project.
   if type "curl" > /dev/null; then
-    DOWNLOAD_URL=$(curl -v -s $url | grep $OS | awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
+    DOWNLOAD_URL=$(curl -v -s $url | grep "${OS}-${ARCH}" | awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
   elif type "wget" > /dev/null; then
-    DOWNLOAD_URL=$(wget -q -O - $url | grep $OS | awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
+    DOWNLOAD_URL=$(wget -q -O - $url | grep "${OS}-${ARCH}" | awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
+  fi
+
+  if ! echo "${DOWNLOAD_URL}" | grep -q "${OS}-${ARCH}"; then
+    echo "No prebuilt binary for ${OS}-${ARCH}."
+    exit 1
   fi
 }
 
-# downloadFile downloads the latest binary package and also the checksum
-# for that binary.
+# Download the plugin package.
 downloadFile() {
   PLUGIN_TMP_FILE="/tmp/${PROJECT_NAME}.tgz"
   echo "Downloading $DOWNLOAD_URL"
@@ -108,18 +103,16 @@ downloadFile() {
   fi
 }
 
-# installFile verifies the SHA256 for the file, then unpacks and
-# installs it.
+# Unpack and install the helm plugin
 installFile() {
   HELM_TMP="/tmp/$PROJECT_NAME"
   mkdir -p "$HELM_TMP"
   tar xf "$PLUGIN_TMP_FILE" -C "$HELM_TMP"
-  HELM_TMP_BIN="$HELM_TMP/${PROJECT_NAME}/${PROJECT_BIN_NAME}"
   echo "Preparing to install into ${HELM_PLUGIN_PATH}"
-  cp "$HELM_TMP_BIN" "$HELM_PLUGIN_PATH"
+  cp -r "$HELM_TMP" "$HELM_PLUGIN_PATH"
 }
 
-# fail_trap is executed if an error occurs.
+# Executed if an error occurs.
 fail_trap() {
   result=$?
   if [ "$result" != "0" ]; then
@@ -129,7 +122,7 @@ fail_trap() {
   exit $result
 }
 
-# testVersion tests the installed client to make sure it is working.
+# Use the installed plugin's binary to make sure it is working.
 testVersion() {
   set +e
   echo "$PROJECT_NAME installed into $HELM_PLUGIN_PATH/$PROJECT_BIN_NAME"
@@ -144,7 +137,6 @@ trap "fail_trap" EXIT
 set -e
 initArch
 initOS
-verifySupported
 getDownloadURL
 downloadFile
 installFile
