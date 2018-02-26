@@ -18,6 +18,11 @@ import (
 // Version identifier populated via the CI/CD process.
 var Version = "HEAD"
 
+type getVersionCommand struct {
+	chart string
+	out   io.Writer
+}
+
 type setVersionCommand struct {
 	chart   string
 	version string
@@ -28,6 +33,17 @@ type bumpVersionCommand struct {
 	chart   string
 	segment string
 	out     io.Writer
+}
+
+func (c *getVersionCommand) run() error {
+	chart, err := chartutil.Load(c.chart)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprint(c.out, chart.Metadata.Version)
+
+	return nil
 }
 
 func (c *setVersionCommand) run() error {
@@ -82,11 +98,30 @@ func (c *bumpVersionCommand) run() error {
 	return writeChartFile(chart, c.chart)
 }
 
+func newGetVersionCommand(out io.Writer) *cobra.Command {
+	gv := &getVersionCommand{out: out}
+
+	cmd := &cobra.Command{
+		Use:   "get",
+		Short: "Print a local chart's version number",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return gv.run()
+		},
+	}
+
+	f := cmd.Flags()
+	f.StringVarP(&gv.chart, "chart", "c", "", "Path to a local chart's root directory")
+
+	cmd.MarkFlagRequired("chart")
+
+	return cmd
+}
+
 func newSetVersionCommand(out io.Writer) *cobra.Command {
 	sc := &setVersionCommand{out: out}
 
 	cmd := &cobra.Command{
-		Use:   "set --chart [PATH_TO_CHART_DIRECTORY] --version [version]",
+		Use:   "set",
 		Short: "Modify a local chart's version number in place",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return sc.run()
@@ -107,7 +142,7 @@ func newBumpVersionCommand(out io.Writer) *cobra.Command {
 	bc := &bumpVersionCommand{out: out}
 
 	cmd := &cobra.Command{
-		Use:   "bump --chart [PATH_TO_CHART_DIRECTORY] --version-segment (major|minor|patch)",
+		Use:   "bump",
 		Short: "Increment the desired segment of a local chart's version",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return bc.run()
@@ -116,7 +151,7 @@ func newBumpVersionCommand(out io.Writer) *cobra.Command {
 
 	f := cmd.Flags()
 	f.StringVarP(&bc.chart, "chart", "c", "", "Path to a local chart's root directory")
-	f.StringVarP(&bc.segment, "version-segment", "s", "", "segment of the chart's version to bump (major|minor|patch)")
+	f.StringVarP(&bc.segment, "version-segment", "s", "", "Segment of the chart's version to bump (major|minor|patch)")
 
 	cmd.MarkFlagRequired("chart")
 	cmd.MarkFlagRequired("version-segment")
@@ -132,18 +167,16 @@ func main() {
 
 	out := rootCmd.OutOrStdout()
 
-	fmt.Fprintln(out, "Helm local-chart-version Plugin --", Version)
-	fmt.Fprintln(out, "")
-
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Print the version of the local-chart-version helm plugin",
 		Long:  "All software has versions. This is helm-local-chart-version's",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Fprintln(out, "Helm local-chart-version Plugin --", Version)
+			fmt.Fprint(out, Version)
 		},
 	})
 
+	rootCmd.AddCommand(newGetVersionCommand(out))
 	rootCmd.AddCommand(newSetVersionCommand(out))
 	rootCmd.AddCommand(newBumpVersionCommand(out))
 
