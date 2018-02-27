@@ -1,0 +1,42 @@
+release:
+  draft: true
+
+# Build customization
+builds:
+  - binary: local-chart-version
+
+    ldflags: -s -w -extldflags "-static" -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+    env:
+      - CGO_ENABLED=0
+
+    goos:
+      - linux
+      - darwin
+      - windows
+
+    goarch:
+      - amd64
+      - 386
+
+    ignore:
+      - goos: windows
+        goarch: 386
+      - goos: darwin
+        goarch: 386
+
+# Archive customization
+archive: 
+  name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+
+  files:
+    - plugin.yaml
+    - README.md
+
+  format: tar.gz
+  format_overrides:
+    - goos: windows
+      format: zip
+
+env_files:
+  github_token: ~/.github/helm-local-chart-version.token
