@@ -5,7 +5,7 @@ release:
 builds:
   - binary: local-chart-version
 
-    ldflags: -s -w -extldflags "-static" -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    ldflags: -s -w -extldflags "-static" -X main.Version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
     env:
       - CGO_ENABLED=0

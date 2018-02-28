@@ -1,18 +1,13 @@
 package main
 
 import (
-	"io"
-	"path/filepath"
-
-	"k8s.io/helm/pkg/proto/hapi/chart"
-
-	"github.com/spf13/cobra"
-	"k8s.io/helm/pkg/chartutil"
-
 	"fmt"
+	"io"
 	"os"
 
-	"github.com/Masterminds/semver"
+	"github.com/mbenabda/helm-local-chart-version/pkg/chartfile"
+	"github.com/mbenabda/helm-local-chart-version/pkg/version"
+	"github.com/spf13/cobra"
 )
 
 // Version identifier populated via the CI/CD process.
@@ -24,9 +19,11 @@ type getVersionCommand struct {
 }
 
 type setVersionCommand struct {
-	chart   string
-	version string
-	out     io.Writer
+	chart      string
+	version    string
+	prerelease string
+	metadata   string
+	out        io.Writer
 }
 
 type bumpVersionCommand struct {
@@ -36,66 +33,52 @@ type bumpVersionCommand struct {
 }
 
 func (c *getVersionCommand) run() error {
-	chart, err := chartutil.Load(c.chart)
+	chart, err := chartfile.Load(c.chart)
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprint(c.out, chart.Metadata.Version)
+	fmt.Fprint(c.out, chart.Version)
 
 	return nil
 }
 
 func (c *setVersionCommand) run() error {
-	chart, err := chartutil.Load(c.chart)
+	chart, err := chartfile.Load(c.chart)
 	if err != nil {
 		return err
 	}
 
-	chart.Metadata.Version = c.version
+	var baseVersion string
+	if c.version != "" {
+		baseVersion = c.version
+	} else {
+		baseVersion = chart.Version
+	}
 
-	return writeChartFile(chart, c.chart)
-}
-
-func writeChartFile(c *chart.Chart, dest string) error {
-	return chartutil.SaveChartfile(filepath.Join(dest, "Chart.yaml"), c.Metadata)
-}
-
-func incrementVersion(version string, segment string) (string, error) {
-	v1, err := semver.NewVersion(version)
+	finalVersion, err := version.Assemble(baseVersion, c.prerelease, c.metadata)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	var v2 semver.Version
-	switch segment {
-	case "patch":
-		v2 = v1.IncPatch()
-	case "minor":
-		v2 = v1.IncMinor()
-	case "major":
-		v2 = v1.IncMajor()
-	default:
-		return "", fmt.Errorf("Unknown version segment %s", segment)
-	}
-
-	return v2.String(), nil
+	chart.Version = finalVersion
+	return chartfile.Save(chart, c.chart)
 }
 
 func (c *bumpVersionCommand) run() error {
-	chart, err := chartutil.Load(c.chart)
+	chart, err := chartfile.Load(c.chart)
 	if err != nil {
 		return err
 	}
 
-	incrementedVersion, err := incrementVersion(chart.Metadata.Version, c.segment)
+	incrementedVersion, err := version.Increment(chart.Version, c.segment)
 	if err != nil {
 		return err
 	}
 
-	chart.Metadata.Version = incrementedVersion
+	chart.Version = incrementedVersion
 
-	return writeChartFile(chart, c.chart)
+	return chartfile.Save(chart, c.chart)
 }
 
 func newGetVersionCommand(out io.Writer) *cobra.Command {
@@ -131,9 +114,10 @@ func newSetVersionCommand(out io.Writer) *cobra.Command {
 	f := cmd.Flags()
 	f.StringVarP(&sc.chart, "chart", "c", "", "Path to a local chart's root directory")
 	f.StringVarP(&sc.version, "version", "v", "", "New version of the chart")
+	f.StringVarP(&sc.prerelease, "prerelease", "p", "", "")
+	f.StringVarP(&sc.metadata, "metadata", "m", "", "")
 
 	cmd.MarkFlagRequired("chart")
-	cmd.MarkFlagRequired("version")
 
 	return cmd
 }
