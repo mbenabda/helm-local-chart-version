@@ -148,7 +148,6 @@ func newSetVersionCommand(out io.Writer) *cobra.Command {
 	f.StringVarP(&sc.metadata, "metadata", "m", "", "")
 
 	cmd.MarkFlagRequired("chart")
-	cmd.MarkFlagRequired("version")
 
 	return cmd
 }
