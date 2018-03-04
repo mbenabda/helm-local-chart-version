@@ -20,11 +20,13 @@ type getVersionCommand struct {
 }
 
 type setVersionCommand struct {
-	chart      string
-	version    string
-	prerelease string
-	metadata   string
-	out        io.Writer
+	chart            string
+	version          string
+	prerelease       string
+	updatePrerelease bool
+	updateMetadata   bool
+	metadata         string
+	out              io.Writer
 }
 
 type bumpVersionCommand struct {
@@ -62,7 +64,25 @@ func (c *setVersionCommand) run() error {
 		baseVersion = chart.Version
 	}
 
-	finalVersion, err := version.Assemble(baseVersion, c.prerelease, c.metadata)
+	prerelease := c.prerelease
+	if !c.updatePrerelease {
+		pre, err := version.Get(baseVersion, "prerelease")
+		if err != nil {
+			return err
+		}
+		prerelease = pre
+	}
+
+	metadata := c.metadata
+	if !c.updateMetadata {
+		md, err := version.Get(baseVersion, "metadata")
+		if err != nil {
+			return err
+		}
+		metadata = md
+	}
+
+	finalVersion, err := version.Assemble(baseVersion, prerelease, metadata)
 	if err != nil {
 		return err
 	}
@@ -114,6 +134,8 @@ func newSetVersionCommand(out io.Writer) *cobra.Command {
 		Use:   "set",
 		Short: "Modify a local chart's version number in place",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			sc.updatePrerelease = cmd.Flags().Lookup("prerelease") != nil
+			sc.updateMetadata = cmd.Flags().Lookup("metadata") != nil
 			return sc.run()
 		},
 	}
@@ -125,6 +147,7 @@ func newSetVersionCommand(out io.Writer) *cobra.Command {
 	f.StringVarP(&sc.metadata, "metadata", "m", "", "")
 
 	cmd.MarkFlagRequired("chart")
+	cmd.MarkFlagRequired("version")
 
 	return cmd
 }
