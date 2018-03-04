@@ -35,21 +35,42 @@ func Assemble(version string, prerelease string, metadata string) (string, error
 		return "", err
 	}
 
-	if prerelease != "" {
-		withPrerelease, err := v.SetPrerelease(prerelease)
-		if err != nil {
-			return "", err
-		}
-		v = &withPrerelease
+	withPrerelease, err := v.SetPrerelease(prerelease)
+	if err != nil {
+		return "", err
 	}
+	v = &withPrerelease
 
-	if metadata != "" {
-		withMetadata, err := v.SetMetadata(metadata)
-		if err != nil {
-			return "", err
-		}
-		v = &withMetadata
+	withMetadata, err := v.SetMetadata(metadata)
+	if err != nil {
+		return "", err
 	}
+	v = &withMetadata
 
 	return v.String(), nil
+}
+
+// Get a specific segment of a semver version
+func Get(version string, segment string) (string, error) {
+	v, err := semver.NewVersion(version)
+	if err != nil {
+		return "", err
+	}
+
+	switch segment {
+	case "":
+		return v.String(), nil
+	case "major":
+		return fmt.Sprintf("%v", v.Major()), nil
+	case "minor":
+		return fmt.Sprintf("%v", v.Minor()), nil
+	case "patch":
+		return fmt.Sprintf("%v", v.Patch()), nil
+	case "prerelease":
+		return fmt.Sprintf("%s", v.Prerelease()), nil
+	case "metadata":
+		return fmt.Sprintf("%s", v.Metadata()), nil
+	default:
+		return "", fmt.Errorf("Unknown version segment %s", segment)
+	}
 }

@@ -14,7 +14,7 @@ func Save(cm *chart.Metadata, chartDir string) error {
 
 // Path of a chart's manifest file
 func Path(chartDir string) string {
-	return filepath.Join(chartDir, "Chart.yaml")
+	return filepath.Join(chartDir, chartutil.ChartfileName)
 }
 
 // Load a chart's manifest file

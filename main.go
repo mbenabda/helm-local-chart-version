@@ -14,8 +14,9 @@ import (
 var Version = "HEAD"
 
 type getVersionCommand struct {
-	chart string
-	out   io.Writer
+	chart   string
+	segment string
+	out     io.Writer
 }
 
 type setVersionCommand struct {
@@ -38,7 +39,12 @@ func (c *getVersionCommand) run() error {
 		return err
 	}
 
-	fmt.Fprint(c.out, chart.Version)
+	segment, err := version.Get(chart.Version, c.segment)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(c.out, segment)
 
 	return nil
 }
@@ -94,6 +100,7 @@ func newGetVersionCommand(out io.Writer) *cobra.Command {
 
 	f := cmd.Flags()
 	f.StringVarP(&gv.chart, "chart", "c", "", "Path to a local chart's root directory")
+	f.StringVarP(&gv.segment, "version-segment", "s", "", "Specific segment of the chart's version to get (major|minor|patch|prerelease|metadata)")
 
 	cmd.MarkFlagRequired("chart")
 

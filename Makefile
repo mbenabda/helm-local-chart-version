@@ -4,6 +4,8 @@ PROJECT_NAME=helm-$(PROJECT_BIN_NAME)
 HELM_HOME ?= $(shell helm home)
 VERSION ?= $(shell sed -n -e 's/version:[ "]*\([^"]*\).*/\1/p' plugin.yaml)
 
+pkgs = $(shell go list ./... | grep -v /vendor/ | grep -v /test/)
+
 .PHONY: clean
 clean:
 	@rm -rf $(PROJECT_BIN_NAME) ./dist
@@ -17,30 +19,34 @@ bootstrap:
 ifndef HAS_GLIDE
 	go get -u github.com/Masterminds/glide
 endif
+	glide install --strip-vendor
+
+.PHONY: build
+build: test
+	go build -i -v -o $(PROJECT_BIN_NAME)
+
+.PHONY: test
+test: bootstrap 
+	go test $(pkgs)
+
+.PHONY: build-cross
+build-cross: test
+	goreleaser --snapshot
+
+.PHONY: install
+install: build
+	mkdir -p $(HELM_HOME)/plugins/$(PROJECT_NAME)
+	cp $(PROJECT_BIN_NAME) $(HELM_HOME)/plugins/$(PROJECT_NAME)/
+	cp plugin.yaml $(HELM_HOME)/plugins/$(PROJECT_NAME)/
+
+.PHONY: release
+release: clean test
 ifndef HAS_GIT
 	$(error You must install Git)
 endif
 ifndef HAS_GORELEASER
 	go get -u github.com/goreleaser/goreleaser
 endif
-	glide install --strip-vendor
-
-.PHONY: build
-build:
-	go build -i -v -o $(PROJECT_BIN_NAME)
-
-.PHONY: build-cross
-build-cross: bootstrap
-	goreleaser --snapshot
-
-.PHONY: install
-install: bootstrap build
-	mkdir -p $(HELM_HOME)/plugins/$(PROJECT_NAME)
-	cp $(PROJECT_BIN_NAME) $(HELM_HOME)/plugins/$(PROJECT_NAME)/
-	cp plugin.yaml $(HELM_HOME)/plugins/$(PROJECT_NAME)/
-
-.PHONY: release
-release: clean
 	git tag -a v$(VERSION) -m "release v$(VERSION)"
 	git push origin v$(VERSION)
 	goreleaser
