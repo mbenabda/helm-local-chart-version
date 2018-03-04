@@ -8,7 +8,7 @@ pkgs = $(shell go list ./... | grep -v /vendor/ | grep -v /test/)
 
 .PHONY: clean
 clean:
-	@rm -rf $(PROJECT_BIN_NAME) ./dist ./docs
+	rm -rf $(PROJECT_BIN_NAME) ./dist
 
 HAS_GLIDE := $(shell command -v glide;)
 HAS_GIT := $(shell command -v git;)
@@ -22,11 +22,10 @@ endif
 	glide install --strip-vendor
 
 .PHONY: gendoc
-gendoc: 
+gendoc: build
 	mkdir -p docs
-	make build
 	./$(PROJECT_BIN_NAME) generate-documentation
-	rm -f ./$(PROJECT_BIN_NAME)
+	make clean --always-make
 
 .PHONY: build
 build: test
