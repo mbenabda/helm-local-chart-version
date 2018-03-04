@@ -1,6 +1,3 @@
-release:
-  draft: true
-
 # Build customization
 builds:
   - binary: local-chart-version
