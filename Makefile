@@ -22,9 +22,11 @@ endif
 	glide install --strip-vendor
 
 .PHONY: gendoc
-gendoc: build
+gendoc: 
 	mkdir -p docs
+	make build
 	./$(PROJECT_BIN_NAME) generate-documentation
+	rm -f ./$(PROJECT_BIN_NAME)
 
 .PHONY: build
 build: test
