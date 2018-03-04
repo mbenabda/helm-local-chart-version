@@ -29,6 +29,7 @@ archive:
   files:
     - plugin.yaml
     - README.md
+    - ./docs/**
 
   format: tar.gz
   format_overrides:

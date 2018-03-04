@@ -8,7 +8,7 @@ pkgs = $(shell go list ./... | grep -v /vendor/ | grep -v /test/)
 
 .PHONY: clean
 clean:
-	@rm -rf $(PROJECT_BIN_NAME) ./dist
+	@rm -rf $(PROJECT_BIN_NAME) ./dist ./docs
 
 HAS_GLIDE := $(shell command -v glide;)
 HAS_GIT := $(shell command -v git;)
@@ -21,6 +21,11 @@ ifndef HAS_GLIDE
 endif
 	glide install --strip-vendor
 
+.PHONY: gendoc
+gendoc: build
+	mkdir -p docs
+	./$(PROJECT_BIN_NAME) generate-documentation
+
 .PHONY: build
 build: test
 	go build -i -v -o $(PROJECT_BIN_NAME)
@@ -30,7 +35,7 @@ test: bootstrap
 	go test $(pkgs)
 
 .PHONY: build-cross
-build-cross: test
+build-cross: clean test gendoc
 	goreleaser --snapshot
 
 .PHONY: install
@@ -40,7 +45,7 @@ install: build
 	cp plugin.yaml $(HELM_HOME)/plugins/$(PROJECT_NAME)/
 
 .PHONY: release
-release: clean test
+release: clean test gendoc
 ifndef HAS_GIT
 	$(error You must install Git)
 endif

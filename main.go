@@ -8,6 +8,7 @@ import (
 	"github.com/mbenabda/helm-local-chart-version/pkg/chartfile"
 	"github.com/mbenabda/helm-local-chart-version/pkg/version"
 	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
 )
 
 // Version identifier populated via the CI/CD process.
@@ -173,7 +174,19 @@ func newBumpVersionCommand(out io.Writer) *cobra.Command {
 	return cmd
 }
 
+func newGenerateDocumentationCommand(out io.Writer, rootCmd *cobra.Command) *cobra.Command {
+	return &cobra.Command{
+		Use:    "generate-documentation",
+		Short:  "Generate the cli documentation",
+		Hidden: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return doc.GenMarkdownTree(rootCmd, "./docs/")
+		},
+	}
+}
+
 func main() {
+
 	rootCmd := &cobra.Command{
 		Use:  "local-chart-version",
 		Long: "Modify the version number of a local helm chart",
@@ -193,6 +206,7 @@ func main() {
 	rootCmd.AddCommand(newGetVersionCommand(out))
 	rootCmd.AddCommand(newSetVersionCommand(out))
 	rootCmd.AddCommand(newBumpVersionCommand(out))
+	rootCmd.AddCommand(newGenerateDocumentationCommand(out, rootCmd))
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
