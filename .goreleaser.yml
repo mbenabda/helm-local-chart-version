@@ -10,17 +10,9 @@ builds:
     goos:
       - linux
       - darwin
-      - windows
 
     goarch:
       - amd64
-      - 386
-
-    ignore:
-      - goos: windows
-        goarch: 386
-      - goos: darwin
-        goarch: 386
 
 # Archive customization
 archive: 
@@ -32,9 +24,6 @@ archive:
     - ./docs/**
 
   format: tar.gz
-  format_overrides:
-    - goos: windows
-      format: zip
 
 env_files:
   github_token: ~/.github/helm-local-chart-version.token
