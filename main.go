@@ -25,8 +25,6 @@ type setVersionCommand struct {
 	version          string
 	prerelease       string
 	updatePrerelease bool
-	updateMetadata   bool
-	metadata         string
 	out              io.Writer
 }
 
@@ -74,16 +72,7 @@ func (c *setVersionCommand) run() error {
 		prerelease = pre
 	}
 
-	metadata := c.metadata
-	if !c.updateMetadata {
-		md, err := version.Get(baseVersion, "metadata")
-		if err != nil {
-			return err
-		}
-		metadata = md
-	}
-
-	finalVersion, err := version.Assemble(baseVersion, prerelease, metadata)
+	finalVersion, err := version.Assemble(baseVersion, prerelease)
 	if err != nil {
 		return err
 	}
@@ -121,7 +110,7 @@ func newGetVersionCommand(out io.Writer) *cobra.Command {
 
 	f := cmd.Flags()
 	f.StringVarP(&gv.chart, "chart", "c", "", "Path to a local chart's root directory")
-	f.StringVarP(&gv.segment, "version-segment", "s", "", "Specific segment of the chart's version to get (major|minor|patch|prerelease|metadata)")
+	f.StringVarP(&gv.segment, "version-segment", "s", "", "Specific segment of the chart's version to get (major|minor|patch|prerelease)")
 
 	cmd.MarkFlagRequired("chart")
 
@@ -136,7 +125,6 @@ func newSetVersionCommand(out io.Writer) *cobra.Command {
 		Short: "Modify a local chart's version number in place",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			sc.updatePrerelease = cmd.Flags().Lookup("prerelease") != nil
-			sc.updateMetadata = cmd.Flags().Lookup("metadata") != nil
 			return sc.run()
 		},
 	}
@@ -145,7 +133,6 @@ func newSetVersionCommand(out io.Writer) *cobra.Command {
 	f.StringVarP(&sc.chart, "chart", "c", "", "Path to a local chart's root directory")
 	f.StringVarP(&sc.version, "version", "v", "", "New version of the chart")
 	f.StringVarP(&sc.prerelease, "prerelease", "p", "", "")
-	f.StringVarP(&sc.metadata, "metadata", "m", "", "")
 
 	cmd.MarkFlagRequired("chart")
 

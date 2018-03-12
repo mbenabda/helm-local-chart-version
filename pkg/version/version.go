@@ -29,7 +29,7 @@ func Increment(version string, segment string) (string, error) {
 }
 
 // Assemble a semver version from its parts
-func Assemble(version string, prerelease string, metadata string) (string, error) {
+func Assemble(version string, prerelease string) (string, error) {
 	v, err := semver.NewVersion(version)
 	if err != nil {
 		return "", err
@@ -40,12 +40,6 @@ func Assemble(version string, prerelease string, metadata string) (string, error
 		return "", err
 	}
 	v = &withPrerelease
-
-	withMetadata, err := v.SetMetadata(metadata)
-	if err != nil {
-		return "", err
-	}
-	v = &withMetadata
 
 	return v.String(), nil
 }
@@ -68,8 +62,6 @@ func Get(version string, segment string) (string, error) {
 		return fmt.Sprintf("%v", v.Patch()), nil
 	case "prerelease":
 		return fmt.Sprintf("%s", v.Prerelease()), nil
-	case "metadata":
-		return fmt.Sprintf("%s", v.Metadata()), nil
 	default:
 		return "", fmt.Errorf("Unknown version segment %s", segment)
 	}
