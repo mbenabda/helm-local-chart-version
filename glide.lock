@@ -1,8 +1,12 @@
-hash: 2537e920a3d03a922fd6f75baa1b7e11b2a66fd84718e4efff51cb2f2ed16b95
-updated: 2018-02-22T23:56:36.259825774+01:00
+hash: ea9b872ebe1bc80417b689c59d41b5765ea82be480df2b53c5eb57b8566606ba
+updated: 2018-04-10T13:44:08.060348-06:00
 imports:
 - name: github.com/BurntSushi/toml
   version: b26d9c308763d68093482582cea63d69be07a0f0
+- name: github.com/cpuguy83/go-md2man
+  version: 71acacd42f85e5e82f70a55327789582a5200a90
+  subpackages:
+  - md2man
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/gobwas/glob
@@ -16,7 +20,7 @@ imports:
   - util/runes
   - util/strings
 - name: github.com/golang/protobuf
-  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
   - proto
   - ptypes/any
@@ -25,18 +29,24 @@ imports:
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/Masterminds/semver
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
+- name: github.com/russross/blackfriday
+  version: 300106c228d52c8941d4b3de6054a6062a86dda3
+- name: github.com/shurcooL/sanitized_anchor_name
+  version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
 - name: github.com/spf13/cobra
-  version: 7b2c5ac9fc04fc5efafb60700713d4fa609b777b
+  version: a1f051bc3eba734da4772d60e2d677f47cf93ef4
+  subpackages:
+  - doc
 - name: github.com/spf13/pflag
   version: ee5fd03fd6acfd43e44aea0b4135958546ed8e73
 - name: gopkg.in/yaml.v2
   version: d670f9405373e636a5a2765eea47fac0c9bc91a4
 - name: k8s.io/apimachinery
-  version: cced8e64b6ca92a8b6afcbfea3353ca016694a45
+  version: 68f9c3a1feb3140df59c67ced62d3a5df8e6c9c2
   subpackages:
   - pkg/version
 - name: k8s.io/helm
-  version: 6af75a8fd72e2aa18a2b278cfe5c7a1c5feca7f2
+  version: a80231648a1473929271764b920a8e346f6de844
   subpackages:
   - pkg/chartutil
   - pkg/ignore
