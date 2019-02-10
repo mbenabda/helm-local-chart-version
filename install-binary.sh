@@ -49,19 +49,19 @@ getDownloadURL() {
     exit 1
   fi
 
-  local url="https://api.github.com/repos/${PROJECT_GH}/releases/latest"
-  local version=$(git describe --tags --exact-match 2>/dev/null)
+  local version=$(git describe --tags --exact-match 2>/dev/null | sed s/^v//)
   if [ -n "$version" ]; then
-    url="https://api.github.com/repos/${PROJECT_GH}/releases/tags/${version}"
-  fi
+    DOWNLOAD_URL="https://github.com/${PROJECT_GH}/releases/download/v${version}/${PROJECT_NAME}-${version}-${OS}-${ARCH}.tar.gz"
+  else
+    local url="https://api.github.com/repos/${PROJECT_GH}/releases/latest"
 
-  # Use the GitHub API to find the download url for this project.
-  if type "curl" > /dev/null; then
-    DOWNLOAD_URL=$(curl -v -s $url | grep "${OS}-${ARCH}" | awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
-  elif type "wget" > /dev/null; then
-    DOWNLOAD_URL=$(wget -q -O - $url | grep "${OS}-${ARCH}" | awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
+    # Use the GitHub API to find the download url for this project.
+    if type "curl" > /dev/null; then
+      DOWNLOAD_URL=$(curl -v -s $url | grep "${OS}-${ARCH}" | awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
+    elif type "wget" > /dev/null; then
+      DOWNLOAD_URL=$(wget -q -O - $url | grep "${OS}-${ARCH}" | awk '/\"browser_download_url\":/{gsub( /[,\"]/,"", $2); print $2}')
+    fi
   fi
-
   if ! echo "${DOWNLOAD_URL}" | grep -q "${OS}-${ARCH}"; then
     echo "No prebuilt binary for ${OS}-${ARCH}."
     exit 1
@@ -91,7 +91,7 @@ fail_trap() {
   result=$?
   if [ "$result" != "0" ]; then
     echo "Failed to install $PROJECT_NAME"
-    echo "\tFor support, go to https://github.com/${PROJECT_GH}."
+    echo "For support, go to https://github.com/${PROJECT_GH}."
   fi
   exit $result
 }
