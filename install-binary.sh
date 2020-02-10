@@ -27,8 +27,6 @@ PROJECT_BIN_NAME="local-chart-version"
 PROJECT_NAME="helm-${PROJECT_BIN_NAME}"
 PROJECT_GH="mbenabda/${PROJECT_NAME}"
 
-#: ${HELM_PLUGIN_PATH:="$(helm home)/plugins/${PROJECT_NAME}"}
-
 # Discover the architecture for this system.
 initArch() {
   ARCH=$(uname -m)
