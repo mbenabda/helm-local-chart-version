@@ -27,8 +27,6 @@ PROJECT_BIN_NAME="local-chart-version"
 PROJECT_NAME="helm-${PROJECT_BIN_NAME}"
 PROJECT_GH="mbenabda/${PROJECT_NAME}"
 
-: ${HELM_PLUGIN_PATH:="$(helm home)/plugins/${PROJECT_NAME}"}
-
 # Discover the architecture for this system.
 initArch() {
   ARCH=$(uname -m)
@@ -81,9 +79,9 @@ downloadFile() {
 
 # Unpack and install the helm plugin
 installFile() {
-  echo "Preparing to install into ${HELM_PLUGIN_PATH}"
-  mkdir -p ${HELM_PLUGIN_PATH} \
-  && tar -xvzf "$PLUGIN_TMP_FILE" -C "$HELM_PLUGIN_PATH"
+  echo "Preparing to install into ${HELM_PLUGIN_DIR}"
+  mkdir -p ${HELM_PLUGIN_DIR} \
+  && tar -xvzf "$PLUGIN_TMP_FILE" -C "$HELM_PLUGIN_DIR"
 }
 
 # Executed if an error occurs.
@@ -99,8 +97,8 @@ fail_trap() {
 # Use the installed plugin's binary to make sure it is working.
 testVersion() {
   set +e
-  echo "$PROJECT_NAME installed into $HELM_PLUGIN_PATH/$PROJECT_BIN_NAME"
-  $HELM_PLUGIN_PATH/$PROJECT_BIN_NAME -h
+  echo "$PROJECT_NAME installed into $HELM_PLUGIN_DIR/$PROJECT_BIN_NAME"
+  $HELM_PLUGIN_DIR/$PROJECT_BIN_NAME -h
   set -e
 }
 
