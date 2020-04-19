@@ -35,12 +35,12 @@ type bumpVersionCommand struct {
 }
 
 func (c *getVersionCommand) run() error {
-	chart, err := chartfile.Load(c.chart)
+	chart, err := chartfile.Open(c.chart)
 	if err != nil {
 		return err
 	}
 
-	segment, err := version.Get(chart.Version, c.segment)
+	segment, err := version.Get(chart.Version(), c.segment)
 	if err != nil {
 		return err
 	}
@@ -50,21 +50,21 @@ func (c *getVersionCommand) run() error {
 	return nil
 }
 
-func (c *setVersionCommand) run() error {
-	chart, err := chartfile.Load(c.chart)
+func (cmd *setVersionCommand) run() error {
+	chart, err := chartfile.Open(cmd.chart)
 	if err != nil {
 		return err
 	}
 
 	var baseVersion string
-	if c.version != "" {
-		baseVersion = c.version
+	if cmd.version == "" {
+		baseVersion = chart.Version()
 	} else {
-		baseVersion = chart.Version
+		baseVersion = cmd.version
 	}
 
-	prerelease := c.prerelease
-	if !c.updatePrerelease {
+	prerelease := cmd.prerelease
+	if !cmd.updatePrerelease {
 		pre, err := version.Get(baseVersion, "prerelease")
 		if err != nil {
 			return err
@@ -77,24 +77,21 @@ func (c *setVersionCommand) run() error {
 		return err
 	}
 
-	chart.Version = finalVersion
-	return chartfile.Save(chart, c.chart)
+	return chart.SetVersion(finalVersion)
 }
 
 func (c *bumpVersionCommand) run() error {
-	chart, err := chartfile.Load(c.chart)
+	chart, err := chartfile.Open(c.chart)
 	if err != nil {
 		return err
 	}
 
-	incrementedVersion, err := version.Increment(chart.Version, c.segment)
+	incrementedVersion, err := version.Increment(chart.Version(), c.segment)
 	if err != nil {
 		return err
 	}
 
-	chart.Version = incrementedVersion
-
-	return chartfile.Save(chart, c.chart)
+	return chart.SetVersion(incrementedVersion)
 }
 
 func newGetVersionCommand(out io.Writer) *cobra.Command {

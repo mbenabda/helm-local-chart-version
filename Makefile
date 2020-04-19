@@ -10,16 +10,12 @@ pkgs = $(shell go list ./... | grep -v /vendor/ | grep -v /test/)
 clean:
 	rm -rf $(PROJECT_BIN_NAME) ./dist
 
-HAS_GLIDE := $(shell command -v glide;)
 HAS_GIT := $(shell command -v git;)
 HAS_GORELEASER := $(shell command -v goreleaser;)
 
-.PHONY: bootstrap
-bootstrap:
-ifndef HAS_GLIDE
-	go get -u github.com/Masterminds/glide
-endif
-	glide install --strip-vendor
+.PHONY: show-version
+show-version:
+	@echo $(VERSION)
 
 .PHONY: gendoc
 gendoc: build
@@ -32,11 +28,14 @@ build: test
 	go build -i -v -o $(PROJECT_BIN_NAME)
 
 .PHONY: test
-test: bootstrap 
-	go test $(pkgs)
+test: 
+	go test ./...
 
 .PHONY: build-cross
 build-cross: clean test gendoc
+ifndef HAS_GORELEASER
+	$(error You must install goreleaser)
+endif
 	goreleaser --snapshot
 
 .PHONY: install
@@ -51,7 +50,7 @@ ifndef HAS_GIT
 	$(error You must install Git)
 endif
 ifndef HAS_GORELEASER
-	go get -u github.com/goreleaser/goreleaser
+	$(error You must install goreleaser)
 endif
 	git tag -a v$(VERSION) -m "release v$(VERSION)"
 	git push origin v$(VERSION)

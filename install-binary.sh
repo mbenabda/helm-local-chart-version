@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Shamelessly copied from https://github.com/technosophos/helm-template
 #

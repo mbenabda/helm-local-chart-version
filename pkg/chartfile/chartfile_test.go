@@ -1,36 +1,77 @@
 package chartfile
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	"gopkg.in/yaml.v2"
+
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 )
 
-func TestLoad(t *testing.T) {
-	givenNewChart(t, "chartfile_TestLoad", "0.0.1", shouldLoadChartFile)
+func TestOpen(t *testing.T) {
+	givenNewChart(t, "chartfile_TestOpen", "0.0.1", shouldOpenChartFile)
 }
 
 func TestPath(t *testing.T) {
 	givenNewChart(t, "chartfile_TestPath", "0.0.1", shouldCalculateChartFilePath)
 }
-func TestSave(t *testing.T) {
-	givenNewChart(t, "chartfile_TestSave", "0.0.1", shouldSaveChartFile)
+func TestSetVersion(t *testing.T) {
+	givenNewChart(t, "chartfile_TestSetVersion", "0.0", shouldSetChartFileVersion)
 }
 
-func shouldLoadChartFile(t *testing.T, chartName string, chartVersion string, chartDir string) {
-	c, err := Load(chartDir)
+func TestDoesNotOverrideUnrelatedChartfieldKeys(t *testing.T) {
+	chartName := "chartfile_TestDoesNotOverrideUnrelatedChartfieldKeys"
+	chartVersion := "0.0.1"
+
+	chartDir, err := ioutil.TempDir("", chartName)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.Name != chartName {
-		t.Fatal("incorrect chart name")
+	defer os.RemoveAll(chartDir)
+
+	contents, err := yaml.Marshal(map[string]string{
+		"name":           chartName,
+		"version":        chartVersion,
+		"someOtherField": "aValue",
+	})
+
+	err = ioutil.WriteFile(Path(chartDir), contents, 0777)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if c.Version != chartVersion {
+
+	c, err := Open(chartDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := c.SetVersion(chartVersion); err != nil {
+		t.Fatal(err)
+	}
+
+	read, err := ioutil.ReadFile(Path(chartDir))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(read, contents) {
+		t.Fatal(fmt.Errorf("SetVersion modified the contents of the charfile. expected\n %s\n got\n %s", contents, read))
+	}
+}
+
+func shouldOpenChartFile(t *testing.T, chartName string, chartVersion string, chartDir string) {
+	c, err := Open(chartDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Version() != chartVersion {
 		t.Fatal("incorrect chart version")
 	}
 }
@@ -42,18 +83,17 @@ func shouldCalculateChartFilePath(t *testing.T, chartName string, chartVersion s
 	}
 }
 
-func shouldSaveChartFile(t *testing.T, chartName string, chartVersion string, chartDir string) {
-	chartFile, err := Load(chartDir)
+func shouldSetChartFileVersion(t *testing.T, chartName string, chartVersion string, chartDir string) {
+	chartFile, err := Open(chartDir)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	chartFile.Version = chartVersion + ".3"
-	if err := Save(chartFile, chartDir); err != nil {
+	if err := chartFile.SetVersion(chartVersion + ".3"); err != nil {
 		t.Fatal(err)
 	}
 
-	updatedChartFile, err := Load(chartDir)
+	updatedChartFile, err := Open(chartDir)
 	if err != nil {
 		t.Fatal(err)
 	}
