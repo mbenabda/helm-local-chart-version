@@ -13,6 +13,10 @@ clean:
 HAS_GIT := $(shell command -v git;)
 HAS_GORELEASER := $(shell command -v goreleaser;)
 
+.PHONY: show-version
+show-version:
+	@echo $(VERSION)
+
 .PHONY: gendoc
 gendoc: build
 	mkdir -p docs
@@ -24,11 +28,14 @@ build: test
 	go build -i -v -o $(PROJECT_BIN_NAME)
 
 .PHONY: test
-test:  
+test: 
 	go test ./...
 
 .PHONY: build-cross
 build-cross: clean test gendoc
+ifndef HAS_GORELEASER
+	$(error You must install goreleaser)
+endif
 	goreleaser --snapshot
 
 .PHONY: install
@@ -43,7 +50,7 @@ ifndef HAS_GIT
 	$(error You must install Git)
 endif
 ifndef HAS_GORELEASER
-	go get -u github.com/goreleaser/goreleaser
+	$(error You must install goreleaser)
 endif
 	git tag -a v$(VERSION) -m "release v$(VERSION)"
 	git push origin v$(VERSION)
