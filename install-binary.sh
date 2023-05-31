@@ -47,7 +47,7 @@ getDownloadURL() {
     exit 1
   fi
 
-  local version=$(git describe --tags --exact-match 2>/dev/null | sed s/^v//)
+  local version=$(git -C "$HELM_PLUGIN_DIR" describe --tags --exact-match 2>/dev/null | sed s/^v//)
   if [ -n "$version" ]; then
     DOWNLOAD_URL="https://github.com/${PROJECT_GH}/releases/download/v${version}/${PROJECT_NAME}-${version}-${OS}-${ARCH}.tar.gz"
   else
