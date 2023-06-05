@@ -25,7 +25,7 @@ gendoc: build
 
 .PHONY: build
 build: test
-	go build -i -v -o $(PROJECT_BIN_NAME)
+	go build -v -o $(PROJECT_BIN_NAME)
 
 .PHONY: test
 test: 
